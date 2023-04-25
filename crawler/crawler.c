@@ -9,11 +9,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <../libcs50/hashtable.h>
-#include <../libcs50/webpage.h>
-#include <../libcs50/bag.h>
-#include <../libcs50/mem.h>
-#include <../common/pagedir.h>
+#include "hashtable.h"
+#include "webpage.h"
+#include "bag.h"
+#include "mem.h"
+#include "pagedir.h"
+
+static void parseArgs(const int argc, char* argv[],
+                      char** seedURL, char** pageDirectory, int* maxDepth);
+static void crawl(char* seedURL, char* pageDirectory, const int maxDepth);
+static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen);
+
+/**************** main ****************/
+/* Call the parseArges function to parse command line arguments and crawl the web using crawl function
+ *
+ * Caller provides:
+ *   arc, argv
+ */
 
 int main(const int argc, char* argv[])
 {
@@ -23,8 +35,24 @@ int main(const int argc, char* argv[])
 
   parseArgs(argc, argv, &seedURL, &pageDirectory, &maxDepth);
   crawl(seedURL, pageDirectory, maxDepth);
+  mem_free(pageDirectory);
 
+  return 0;
 }
+
+/**************** parseArgs ****************/
+/* Given arguments from the command line, extract them into the function parameters; 
+ * return only if successful.
+ *
+ * Caller provides: argc, argv, seedURL (pointer to a pointer to URL), 
+ * pageDirectory (pointer to a pointer to directory) ,maxDepth
+ *   
+ * We do:
+ * for seedURL, normalize the URL if possible and validate it is an internal URL
+ * for pageDirectory, call pagedir_init()
+ * for maxDepth, ensure it is an integer in specified range
+ * if any trouble is found, print an error to stderr and exit non-zero.
+ */
 
 static void parseArgs(const int argc, char* argv[],
                       char** seedURL, char** pageDirectory, int* maxDepth)
@@ -33,6 +61,17 @@ static void parseArgs(const int argc, char* argv[],
   if (argc != 4) {
     fprintf(stderr, "Incorrect number of arguments. Usage: crawler seedURL pageDirectory maxDepth\n");
     exit(99);
+  }
+
+  // parse the maximum depth
+  char extraChar;
+  if (sscanf(argv[3], "%d%c", maxDepth, &extraChar) != 1) {
+    fprintf(stderr, "crawler: invalid integer '%s' for maxDepth.\n", argv[3]);
+    exit(1);
+  }
+  if (*maxDepth < 0 || *maxDepth > 10) {    // check if the integer is in specified range
+    fprintf(stderr, "crawler: integer %d out of range [0,1,..,10].\n", *maxDepth);
+    exit(2);
   }
 
   // parse the URL
@@ -44,17 +83,17 @@ static void parseArgs(const int argc, char* argv[],
   char* normalizedURL = normalizeURL(argv[1]);          // try to normalize the url
   if (normalizedURL == NULL) {
     fprintf(stderr, "URL cannot be normalized.\n");
-    exit(1);
+    exit(3);
   }
   strcpy(*seedURL, normalizedURL);
   free(normalizedURL);
   if (!isInternalURL(*seedURL)) {         // check if the url is internal
     fprintf(stderr, "crawler: '%s' is not an internal URL.\n", *seedURL);
-    exit(2);
+    exit(4);
   }
 
   // parse the directory
-  *pageDirectory = mem_malloc(strlen[argv[2]] + 1);
+  *pageDirectory = mem_malloc(strlen(argv[2]) + 1);
   if (*pageDirectory == NULL) {
     fprintf(stderr, "Failed to allocate memory for pageDirectory.\n");
     exit(100);
@@ -62,20 +101,21 @@ static void parseArgs(const int argc, char* argv[],
   strcpy(*pageDirectory, argv[2]);
   if (!pagedir_init(*pageDirectory)) {     // try to initiate the directory
     fprintf(stderr, "crawler: cannot initiate pageDirectory '%s'.\n", *pageDirectory);
-    exit(3);
-  }
-
-  // parse the maximum depth
-  char extraChar;
-  if (sscanf(argv[3], "%d%c", maxDepth, &extraChar) != 1) {
-    fprintf(stderr, "crawler: invalid integer '%s' for maxDepth.\n", argv[3]);
-    exit(4);
-  }
-  if (*maxDepth < 0 || *maxDepth > 10) {    // check if the integer is in specified range
-    fprintf(stderr, "crawler: integer %d out of range [0,1,..,10].\n", *maxDepth);
     exit(5);
   }
+  return;
 }
+
+/**************** crawl ****************/
+/* Given arguments from the command line, extract them into the function parameters; 
+ * return only if successful.
+ *
+ * Caller provides: valid seedURl (pointer to URL), maxDepth, pageDirectory (pointer to directory)
+ *   
+ * We do:
+ * crawling from seedURL to max depth and save pages in directory
+ * call on pageScan to crawl out to possible pages
+ */
 
 static void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 {
@@ -85,6 +125,7 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
     fprintf(stderr, "Hashtable cannot be initialized (memory problem).\n");
     exit(100);
   }
+  hashtable_insert(ht, seedURL, "");
 
   // initialize the bag and add a webpage representing the seedURL at depth 0
   bag_t* bag = bag_new();
@@ -93,7 +134,7 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
     exit(100);
   }
   webpage_t* currPage = webpage_new(seedURL, 0, NULL);
-  bag_insert(currPage);
+  bag_insert(bag, currPage);
   int docID = 1;
 
   // start crawling
@@ -111,8 +152,21 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 
   // delete the hashtable and bag
   hashtable_delete(ht, NULL);
-  bag_delete(ht, webpage_delete);
+  bag_delete(bag, webpage_delete);
 }
+
+/**************** pageScan ****************/
+/* extracts URLs from a page and processes each one
+ *
+ * Caller provides: valid page, pagesToCrawl (pointer a bag), pagesSeen (pointer to a hashtable)
+ *   
+ * We do:
+ * Given a webpage, scan the given page to extract any links (URLs), ignoring non-internal URLs; 
+ * for any URL not already seen before (i.e., not in the hashtable).
+ * (check by try adding to hashtable, which will return false if URL already exists)
+ * add the URL to both the hashtable pages_seen and to the bag pages_to_crawl
+ * 
+ */
 
 static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen)
 {
@@ -125,11 +179,9 @@ static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSee
     normalizedURL = normalizeURL(nextURL);
     mem_free(nextURL);
     if (normalizedURL == NULL) {
-      fprintf(stderr, "Failed to normalize URL.\n");
-      mem_free(normalizedURL);
       continue;
     }
-    if (!isInternalURL()) {
+    if (!isInternalURL(normalizedURL)) {
       mem_free(normalizedURL);
       continue;
     }
@@ -138,6 +190,8 @@ static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSee
       webpage_t* newPage = webpage_new(normalizedURL, depth + 1, NULL);
       bag_insert(pagesToCrawl, newPage);
     }
-    mem_free(normalizedURL);
+    else {
+      mem_free(normalizedURL);
+    }
   }
 }
