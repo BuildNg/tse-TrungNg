@@ -21,7 +21,8 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth);
 static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen);
 
 /**************** main ****************/
-/* Call the parseArges function to parse command line arguments and crawl the web using crawl function
+/* Call the parseArges function to parse command line arguments 
+ * and crawl the web using crawl function
  *
  * Caller provides:
  *   arc, argv

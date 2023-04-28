@@ -31,3 +31,4 @@ clean:
 	rm -f *~ *.o
 	rm -f testing.out
 	rm -f core
+	rm crawler
