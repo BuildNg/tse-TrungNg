@@ -25,7 +25,8 @@ test: crawler
 	bash -v testing.sh
 
 valgrind: crawler
-	$(VALGRIND) bash -v testing.sh
+	$(VALGRIND) ./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/index.html ../data/valgrind_toscape 1
+	
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
 	rm -f *~ *.o
