@@ -1,0 +1,101 @@
+bash -v testing.sh
+module () {  _module_raw "$@" 2>&1
+}
+ml () {  module ml "$@"
+}
+_module_raw () {  eval `/usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash "$@"`;
+ _mlstatus=$?;
+ return $_mlstatus
+}
+#!/bin/bash
+# Testing file for indexer.c and for the index module, using indextest.c
+# Trung Nguyen, Dartmouth CS50. Spring 2023 - Lab 5.
+
+# Testing erronous arguments
+
+# 1. No arguments
+./indexer
+Incorrect number of arguments. Usage: ./indexer pageDirectory indexFilename.
+
+# 2. One argument 
+./indexer ../data/letters-0
+Incorrect number of arguments. Usage: ./indexer pageDirectory indexFilename.
+
+# 3. Three or more arguments
+./indexer ../data/letters-0 ../data/letters0.index ../data/letters1.index
+Incorrect number of arguments. Usage: ./indexer pageDirectory indexFilename.
+
+# 4. Invalid pageDirectory (non-existent path)
+./indexer ../data/letters-19 ../data/letters19.index
+Error: not a valid directory with .crawler file.testing.sh: line 17: 1734161 Segmentation fault      (core dumped) ./indexer ../data/letters-19 ../data/letters19.index
+
+# 5. Invalid pageDirectory (not a crawler directory)
+./indexer ../data/common ../data/common.index
+Error: not a valid directory with .crawler file.testing.sh: line 20: 1734163 Segmentation fault      (core dumped) ./indexer ../data/common ../data/common.index
+
+# 6. Invalid indexFile (non-existent path)
+./indexer ../data/letters-0 ../abcxyz/letters0.index
+Cannot write output to ../abcxyz/letters0.index.
+
+# 7. Invalid indexFile (read-only directory)
+./indexer ../data/letters-0 ~/cs50-dev/shared/letters0.index
+Cannot write output to /thayerfs/home/f006fzc/cs50-dev/shared/letters0.index.
+
+# 8. Invalid indexFile (existing, but read-only file)
+./indexer ../data/toscrape-1 ~/cs50-dev/shared/tse/indices/toscrape-1.ndx
+Cannot write output to /thayerfs/home/f006fzc/cs50-dev/shared/tse/indices/toscrape-1.ndx.
+
+# Test index and indexer on a variety of tests
+
+# On letters-0
+./indexer ../data/letters-0 ../data/letters0.index
+./indextest ../data/letters0.index ../data/letters0.test
+# Should print out nothing
+~/cs50-dev/shared/tse/indexcmp ../data/letters0.index ../data/letters0.test 
+
+# On toscrape-1
+./indexer ../data/toscrape-1 ../data/toscrape1.index
+./indextest ../data/toscrape1.index ../data/toscrape1.test
+# Should print out nothing
+~/cs50-dev/shared/tse/indexcmp ../data/toscrape1.index ../data/toscrape1.test 
+
+# On wiki-2
+./indexer ../data/wiki-2 ../data/wiki2.index
+./indextest ../data/wiki2.index ../data/wiki2.test
+# Should print out nothing
+~/cs50-dev/shared/tse/indexcmp ../data/wiki2.index ../data/wiki2.test 
+
+# Using valgrind for memory leak, on toscrape-1
+myvalgrind='valgrind --leak-check=full --show-leak-kinds=all'
+$myvalgrind ./indexer ../data/toscrape-1 ../data/toscrape1.index
+==1734529== Memcheck, a memory error detector
+==1734529== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1734529== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1734529== Command: ./indexer ../data/toscrape-1 ../data/toscrape1.index
+==1734529== 
+==1734529== 
+==1734529== HEAP SUMMARY:
+==1734529==     in use at exit: 0 bytes in 0 blocks
+==1734529==   total heap usage: 2,336,017 allocs, 2,336,017 frees, 42,744,162,569 bytes allocated
+==1734529== 
+==1734529== All heap blocks were freed -- no leaks are possible
+==1734529== 
+==1734529== For lists of detected and suppressed errors, rerun with: -s
+==1734529== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+$myvalgrind ./indextest ../data/toscrape1.index ../data/toscrape1.test
+==1734770== Memcheck, a memory error detector
+==1734770== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1734770== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1734770== Command: ./indextest ../data/toscrape1.index ../data/toscrape1.test
+==1734770== 
+==1734770== 
+==1734770== HEAP SUMMARY:
+==1734770==     in use at exit: 0 bytes in 0 blocks
+==1734770==   total heap usage: 21,953 allocs, 21,953 frees, 500,105 bytes allocated
+==1734770== 
+==1734770== All heap blocks were freed -- no leaks are possible
+==1734770== 
+==1734770== For lists of detected and suppressed errors, rerun with: -s
+==1734770== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+# Should print out nothing
+~/cs50-dev/shared/tse/indexcmp ../data/toscrape1.index ../data/toscrape1.test 
