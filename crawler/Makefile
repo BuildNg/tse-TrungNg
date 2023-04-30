@@ -30,6 +30,6 @@ valgrind: crawler
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
 	rm -f *~ *.o
-	rm -f testing.out
+#	rm -f testing.out
 	rm -f core
 	rm crawler
