@@ -9,7 +9,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../libcs50/webpage.h"
+#include <stdbool.h>
+#include "webpage.h"
 
 /**************** pagedir_init ****************/
 /* construct the pathname for the .crawler file in that directory
@@ -37,5 +38,34 @@ bool pagedir_init(const char* pageDirectory);
  *  on error, print out a message to stderr
  */
 void pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID);
+
+/**************** pagedir_check ****************/
+/**
+ * check if a page directory contains readable .crawler and '1' files or not
+ * 
+ * Caller provides:
+ *   valid pointer to a string (pageDirectory)
+ * We do:
+ *   verify whether the directory contains readable .crawler and '1',
+ *   i.e the directory is created by running crawler program.
+*/
+bool pagedir_check(const char* pageDirectory);
+
+/**************** pagedir_read ****************/
+/**
+ * read a page (with the docID) from the directory.
+ * 
+ * Caller provides:
+ *   valid pointer to a string (pageDirectory)
+ *   valid integer docID, must be positive
+ * We do:
+ *   return NULL if:
+ *     there is no file readable with the name 'docID' in pageDirectory, or
+ *     failed to create a webpage_t due to memory issues.
+ *   otherwise, return the pointer to a the file read - in webpage_t module.
+ * Caller is responsible for:
+ *   calling webpage_delete on the returned pointer after done. 
+*/
+webpage_t* pagedir_read(const char* pageDirectory, const int docID);
 
 #endif // __PAGEDIR_H
