@@ -60,11 +60,125 @@ Given the current `webpage` and its `docID`, scan it for any words longer than 3
         insert the word into the index
         free that word
 
+## Other modules
+
+We leverage the modules of libcs50, located in `../libcs50`, most notably, `webpage`, `hashtable` and `counter`. See that directory for module interfaces. Particularly, we import the file to `webpage_t` data structure to use its function `webpage_getNextWord()` to keep getiing the next word in the file.
+
+We also added the following modules/functions in `../common`:
+
+### pagedir
+
+We add the two more functions to `pagedir.c`, to handle the process of loading webpages from files in `pageDirectory`, as mentioned in the Design Spec.
+
+Pseudocode for `pagedir_check`:
+
+    construct the pathname for the ./crawler file in that directory
+    open the pathname for reading; on error, return false.
+    close the file
+    construct the pathname for the ./1 file in that directory
+    open the pathname for reading; on error, return false.
+    close the file
+    return true
+
+Pseudocode for `pagedir_read`:
+
+    construct the pathname, given the directory and the docID.
+    open the file for reading, if success:
+        read its url, depth and html
+        initialize a new webpage_t from that three parameters
+        free the url, depthString, and html
+        close the file
+        return the webpage
+    return NULL otherwise
+
+### index
+
+This is the major data structure used by the Indexer, as mentioned in the Requirement and Design Spec. For more information, check `Data Structures` section above.
+`index_t` is effectively a hashtable data structure.
+
+Pseudocode for `index_new`:
+
+    Call hashtable_new with number of slots given, return NULL on error.
+
+Pseudocode for `index_insert`:
+
+    Call hashtable_find on the word given to get a counter_t pointer
+    if the pointer is null:
+        initialize a new counter
+        insert that counter as the item of the word for the index using hashtable_insert
+    increment the count for the word by counters_add
+
+Pseudocode for `index_save`:
+
+    Call hashtable_find on the word given to get a counter_t pointer
+    if the pointer is null:
+        initialize a new counter
+        insert that counter as the item of the word for the index using hashtable_insert
+    change the count for the word by counters_set
+
+Pseudocode for `index_load`:
+
+    get the number of lines from input file
+    initialize a new index with slots equal to 4/3 times the number of lines
+    for all lines in the input file:
+        read the first word as the key
+        while we can still read a pair of two numbers into docID and count:
+            call index_save on the key, docID and count
+        free the word
+    return the index
+
+Pseudocode for `index_iterate`:
+
+    call hashtable_iterate on all parameters given
+
+Pseudocode for `index_find`:
+
+    call hashtable_find on the word given
+    return the pointer to the counter
+
+Pseudocode for `index_print`:
+
+    if file output or index is null, print an error message to stderr
+    else, call index_iterate on index, fp and a helper function index_print_helper
+
+Pseudocode for `index_print_helper`:
+
+    let fp be the args
+    check if any parameter is null, print an error message if yes
+    if not: 
+        print out the key
+        let each item be a counter
+        call counters_iterate with helper item_print
+        print a new line
+
+Pseudocode for `item_print`:
+
+    let fp be the args, print an error message if fp is null
+    else, print the pair (docID, count)
+
+Pseudocode for `index_delete`:
+
+    if the index is not null:
+        call hashtable_delete on the index with helper function item_delete
+
+Pseudocode for `item_delete`:
+
+    call counters_delete
+
+### word
+
+This is a module with only one function: normalizing a word.
+
+Pseudocode for `normalizeWord`:
+
+    for every characters of the word:
+        normalize it to lower case
+
 ## Function prototypes
 
 ### indexer
 
-Detailed descriptions of each function's interface is provided as a paragraph comment prior to each function's implementation in `indexer.c` and is not repeated here.
+Detailed descriptions of each function's interface is provided as a paragraph comment prior to each function's implementation in `indexer.c` and are not repeated here.
 
 <!-- markdownlint-disable code-block-style -->
 ```c
@@ -76,6 +190,49 @@ static void indexPage(index_t* index, webpage_t* webpage, const int docID);
 ```
 <!-- markdownlint-restore -->
 
+### pagedir.c
+
+Detailed descriptions of each function's interface is provided in `pagedir.h`, and are not repeated here.
+
+<!-- markdownlint-disable code-block-style -->
+```c
+bool pagedir_init(const char* pageDirectory);
+void pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID);
+bool pagedir_check(const char* pageDirectory);
+webpage_t* pagedir_read(const char* pageDirectory, const int docID);
+```
+<!-- markdownlint-restore -->
+
+### index.c
+
+Detailed descriptions of each function's interface is provided in `index.h` and `index.c`, and are not repeated here.
+
+<!-- markdownlint-disable code-block-style -->
+```c
+index_t* index_new(int num_slots);
+void index_insert(index_t* index, const char* word, const int docID);
+void index_save(index_t* index, const char* word, const int docID, const int count);
+index_t* index_load(FILE* fp);
+void index_iterate(index_t* index, void* arg, void (*itemfunc)(void* arg, const char* key, void* item));
+void index_print(FILE* fp, index_t* index);
+counters_t* index_find(index_t* index, const char* word);
+void index_delete(index_t* index);
+static void index_print_helper(void* arg, const char* key, void* item);
+static void item_print(void* arg, const int key, int count);
+static void item_delete(void* item);
+```
+<!-- markdownlint-restore -->
+
+### word.c
+
+Detailed descriptions of each function's interface is provided in `word.h`, and are not repeated here.
+
+<!-- markdownlint-disable code-block-style -->
+```c
+void normalizeWord(char* word);
+```
+<!-- markdownlint-restore -->
+
 ## Error handling and recovery
 
 All the command-line parameters are rigorously checked before any data structures are allocated or work begins; problems result in a message printed to stderr and a non-zero exit status.
@@ -83,19 +240,6 @@ All the command-line parameters are rigorously checked before any data structure
 When allocating memory, every pointers returned is checked whether it is null or not to check for out-of-memory errors. If this happens, print an error message to stderr, and exit `100`.
 
 Errors of invalid `pageDirectory` are handled by `pagedir_check()`, a function within `pagedir` , while error of invalid `indexFilename` is handled by `parseArgs`.
-
-## Libraries
-
-The Indexer `(indexer.c)` depends on two libraries.
-
-### libcs50.a
-
-We leverage the modules of libcs50, most notably `bag`, `hashtable`, and `webpage`.
-See that directory for module interfaces.
-
-### common.a
-
-The library contains 3 used modules: `pagedir`, `index`, and `word`.
 
 ## Testing
 
