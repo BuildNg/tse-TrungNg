@@ -26,7 +26,6 @@ bool pagedir_init(const char* pageDirectory)
   FILE* fp;
 
   if ((fp = fopen(pathName, "w")) == NULL) {
-    fclose(fp);
     mem_free(pathName);
     return false;
   } else {
@@ -54,7 +53,6 @@ void pagedir_save(const webpage_t* page, const char* pageDirectory, const int do
 
   if ((fp = fopen(pathName, "w")) == NULL) {
     fprintf(stdout, "Error: cannot write to file %s \n", pathName);
-    fclose(fp);
   } else {
     fprintf(fp, "%s\n", webpage_getURL(page));
     fprintf(fp, "%d\n", webpage_getDepth(page));
@@ -83,7 +81,6 @@ bool pagedir_check(const char* pageDirectory)
   if ((fp = fopen(pathName, "r")) == NULL) {
     fprintf(stderr, "Error: not a valid directory with .crawler file.\n");
     mem_free(pathName);
-    fclose(fp);
     return false;
   }
   mem_free(pathName);
@@ -95,7 +92,6 @@ bool pagedir_check(const char* pageDirectory)
   if ((fp = fopen(pathName, "r")) == NULL) {
     fprintf(stderr, "Error: directory did not contain a valid 1 file.\n");
     mem_free(pathName);
-    fclose(fp);
     return false;
   }
   mem_free(pathName);
@@ -136,7 +132,6 @@ webpage_t* pagedir_read(const char* pageDirectory, const int docID)
     return page;
   }
 
-  //fclose(fp);
   mem_free(docIDStr);
   mem_free(pathName);
   return NULL;
