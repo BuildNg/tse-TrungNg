@@ -64,7 +64,6 @@ static index_t* loadOldIndex(const char* oldIndexFilename)
     fclose(fp);
     return index;
   }
-  fclose(fp);
   return NULL;
 }
 
@@ -89,6 +88,6 @@ static void writeNewIndex(index_t* index, const char* newIndexFilename)
   FILE* fp;
   if ((fp = fopen(newIndexFilename, "w")) != NULL) {
     index_print(fp, index);
+    fclose(fp);
   }
-  fclose(fp);
 }
