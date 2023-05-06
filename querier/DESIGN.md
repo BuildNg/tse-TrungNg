@@ -1,0 +1,97 @@
+# CS50 TSE Querier
+
+## Design Spec
+
+Written by Trung Nguyen. Based on the [Indexer Design Spec](https://github.com/CS50Spring2023/home/blob/main/labs/tse/indexer/DESIGN.md) of CS50.
+
+According to the [Querier Requirements Spec](https://github.com/CS50Spring2023/home/blob/main/labs/tse/querier/REQUIREMENTS.md), the TSE *querier* is standalone program that reads the index file produced by the TSE Indexer, and page files produced by the TSE Querier, and answers search queries submitted via stdin.
+
+### User interface
+
+The querier's interface with the users include the command-line, which must have two arguments, and when the querier asks for the user's search queries. Search queries must not contain non-alphabetic letters; "and"/"or" must also not appear at the start, end or consecutively in the query.
+
+```bash
+querier pageDirectory indexFilename
+```
+
+after which the querier will respond with (if users are inputting from `stdin`):
+
+```bash
+Query?:
+```
+
+which will wait for user's search query as input.
+
+### Inputs and outputs
+
+**Input**: the querier will read neccessary files from  `pageDirectory` (specifically, the `url`), load the index from `indexFilename`, as well as process the search queries given by the user.
+
+**Output**: the querier will print out all matching `url`, its `docID` and `score`, in decreasing order of score. Formally, if there is any error regarding syntax, it will print out appropriate messages telling exactly what is wrong.
+
+If there is no syntax error, it will print out "No documents match" if there is no matching documents. If there are matching documents, the output will follow the following format:
+
+```bash
+Matches (int) documents (ranked):
+score (int) doc (int): url
+[score (int) doc (int): url]
+```
+
+where `(int)` represents an integer computed: number of documents match, its score, its associated docID.
+
+### Functional decomposition into modules
+
+The following modules (or functions) are expected:
+  
+  1. *main*, for parsing arguments and start the most important module, *query*;
+  2. *query*, for loading the index in, start asking users for query until EOF, and calls other modules to handle the input.
+  3. *preprocessQuery*, for normalizing all characters, notifying an error if a character is not alphabetic/ a space, and return the number of words in the input;
+  4. *tokenize*, for splicing the input into array of pointers to word, removing any excess spaces;
+  5. *processLogic*, for processing the array of words and its logical operations (and/or) to return a counter containing valid docID for that particular query;
+  6. *printResult*, for printing out `url` with its `docID`, `score` in decreasing order of `score`, given a counter and the `pageDirectory` containing files of all `docID.
+
+Some helper functions are also expected:
+
+  1. *processAnd*, for computing the intersection (or conjunction) of two counters, as defined in the Requirements Spec;
+  2. *processOr*, for computing the union (or disjunction) of two counters, as defined in the Requirements Spec;
+
+### Pseudo code for logic/algorithmic flow
+
+The querier will run as follow:
+
+<!-- markdownlint-disable code-block-style -->
+    parse the command line, validate parameters
+    load indexFilename into an index
+    keep asking for input from users, until EOF is received:
+      call preprocessQuery to validate the input, and get the number of words
+      initialize an array of pointers to char with the size obtained above
+      pass both the input and array by calling tokenize to process, to fill the array with words
+      print out the processed query for users to see
+      process the logic by passing array, index, size of array and exitStatus to processLogic:
+        if there is any error to syntax, print out an error message and continue to the next input
+        else, return a counter containing all matched docIDs and scores
+      print out the result by passing the counter and pageDirectory to printResult in decreasing order of score
+      exit with a non-zero status if any non-recoverable error happens
+
+Additional pseudocode/algorithm for *preprocessQuery*, *tokenize*, *processLogic*, *printResult* can be found in [Querier Implementation Specs](IMPLEMENTATION.md).
+<!-- markdownlint-restore -->
+
+### Major data structures
+
+Our index maps words to pair of (docID, count) pairs. It is a hashtable keyed by *words* and storing *counters* as items. The *counters* is keyed by *docID* and stores a count of the number of occurrences of that word in the document with that ID.
+
+The counters data structure is particularly important, as we will use  `counters_iterate()` many times to find the intersection or union of two counters to process the logical operations in the input.
+
+### Testing plan
+
+*Fuzz testing*, a form of black-box testing in which you fire thousands of random inputs at the program to see how it reacts. The random inputs are generated by program *fuzzquery*. It takes the first number as random seed generator, and the second number as the # of random inputs. However, this program is bad at generating syntactically wrong syntax, and it cannot test wrong command line. This will be handled by integration testing.
+
+*Integration testing*. The querier, as a complete program, will be tested by loading index in from `indexFilename` and loading url from `pageDirectory`. Stdin (user input) will be replaced by a collection of test files (which will be piped in through the command line). Various edge cases will be tested. Specifically, the querier program will be called with:
+
+  1. no arguments
+  2. one argument
+  3. three or more arguments
+  4. invalid `pageDirectory` (non-existent path)
+  5. invalid `pageDirectory` (not a crawler directory)
+  6. invalid `indexFile` (non-existent file)
+  7. combined with `fuzzquery` to generate a huge amount of inputs.
+  8. various inputs (even edge cases), combined with randomly-generated input from `fuzzquery`; with *valgrind* to ensure no memory leaks or errors.

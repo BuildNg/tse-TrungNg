@@ -1,0 +1,213 @@
+bash -v testing.sh
+module () {  _module_raw "$@" 2>&1
+}
+ml () {  module ml "$@"
+}
+_module_raw () {  eval `/usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash "$@"`;
+ _mlstatus=$?;
+ return $_mlstatus
+}
+#!/bin/bash
+# Testing files for querier.c module.
+# Trung Nguyen, Dartmouth CS50. Spring 2023 - Lab 6.
+
+# Variables for main testing
+pdir="../data/toscrape-2"
+indx="../data/toscrape2.index"
+
+# Section 1: Testing erronous arguments
+
+# 1. No arguments
+./querier
+Incorrect number of arguments. Usage: ./querier pageDirectory indexFilename.
+
+# 2. One argument
+./querier ../data/letters-0
+Incorrect number of arguments. Usage: ./querier pageDirectory indexFilename.
+
+# 3. Three or more arguments
+./querier ../data/letters-0 ../data/letters0.index ../data/letters0.test
+Incorrect number of arguments. Usage: ./querier pageDirectory indexFilename.
+
+# 4. Invalid pageDirectory (non-existent path)
+./querier ../data/letters-100 ../data/letters0.index
+Error: not a valid directory with .crawler file.
+This directory is not produced by crawler.
+
+# 5. Invalid pageDirectory (not a crawler directory)
+./querier ../data/common ../data/letters0.index
+Error: not a valid directory with .crawler file.
+This directory is not produced by crawler.
+
+# 6. Invalid indexFile (non-existent indexfile)
+./querier ../data/letters-0 ../data/indexhaha
+Cannot read index file at ../data/indexhaha.
+
+# Section 2: Testing with edge cases, invalid input, many spaces
+
+# 1. Many extra spaces and tabs between words
+./querier $pdir $indx < testfiles/spaces
+today or is good day
+Matches 40 documents (ranked): 
+score   3 doc 107: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-lean-startup-how-todays-entrepreneurs-use-continuous-innovation-to-create-radically-successful-businesses_260/index.html
+score   3 doc 111: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-art-of-startup-fundraising_606/index.html
+score   3 doc 143: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/my-paris-kitchen-recipes-and-stories_910/index.html
+score   2 doc  37: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html
+score   2 doc  40: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sapiens-a-brief-history-of-humankind_996/index.html
+score   2 doc  85: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-activists-tao-te-ching-ancient-advice-for-a-modern-revolution_928/index.html
+score   2 doc 114: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/shoe-dog-a-memoir-by-the-creator-of-nike_831/index.html
+score   2 doc 236: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/poems-that-make-grown-women-cry_824/index.html
+score   2 doc 276: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/shameless_52/index.html
+score   2 doc 318: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/modern-romance_820/index.html
+score   2 doc 322: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-art-forger_930/index.html
+score   2 doc 327: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/settling-the-score-the-summer-games-1_50/index.html
+score   2 doc 353: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-psychopath-test-a-journey-through-the-madness-industry_857/index.html
+score   2 doc 370: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/kill-em-and-leave-searching-for-james-brown-and-the-american-soul_528/index.html
+score   2 doc 376: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-artists-way-a-spiritual-path-to-higher-creativity_839/index.html
+score   2 doc 378: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-omnivores-dilemma-a-natural-history-of-four-meals_854/index.html
+score   2 doc 455: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/meternity_478/index.html
+score   2 doc 457: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/keep-me-posted_594/index.html
+score   2 doc 472: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-wedding-pact-the-omalleys-2_767/index.html
+score   1 doc  26: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/libertarianism-for-beginners_982/index.html
+score   1 doc  27: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html
+score   1 doc  35: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-black-maria_991/index.html
+score   1 doc  53: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/why-the-right-went-wrong-conservatism-from-goldwater-to-the-tea-party-and-beyond_781/index.html
+score   1 doc  56: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/10-day-green-smoothie-cleanse-lose-up-to-15-pounds-in-10-days_581/index.html
+score   1 doc  73: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/how-to-stop-worrying-and-start-living_431/index.html
+score   1 doc 110: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/born-for-this-how-to-find-the-work-you-were-meant-to-do_588/index.html
+score   1 doc 125: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/food-and-drink_33/page-2.html
+score   1 doc 159: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/thomas-jefferson-and-the-tripoli-pirates-the-forgotten-war-that-changed-american-history_867/index.html
+score   1 doc 204: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/m-train_598/index.html
+score   1 doc 220: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/art-and-fear-observations-on-the-perils-and-rewards-of-artmaking_559/index.html
+score   1 doc 240: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-selfish-gene_81/index.html
+score   1 doc 247: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-origin-of-species_499/index.html
+score   1 doc 315: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-immortal-life-of-henrietta-lacks_753/index.html
+score   1 doc 323: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-mindfulness-and-acceptance-workbook-for-anxiety-a-guide-to-breaking-free-from-anxiety-phobias-and-worry-using-acceptance-and-commitment-therapy_937/index.html
+score   1 doc 382: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/everydata-the-misinformation-hidden-in-the-little-data-you-consume-every-day_891/index.html
+score   1 doc 389: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/throwing-rocks-at-the-google-bus-how-growth-became-the-enemy-of-prosperity_948/index.html
+score   1 doc 394: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/choosing-our-religion-the-spiritual-lives-of-americas-nones_14/index.html
+score   1 doc 426: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/my-mrs-brown_719/index.html
+score   1 doc 487: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/kierkegaard-a-christian-missionary-to-christians_527/index.html
+score   1 doc 581: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html
+
+# 2. Input contains non-alphabetic words
+./querier $pdir $indx < testfiles/non-alphabetic
+Bad character '_' in query.
+
+# 3. Input with word mistakenly seperared by spaces (between each letters)
+./querier $pdir $indx < testfiles/mistakenspaces
+h e l l o
+No documents match. 
+
+# 4. Blank input
+./querier $pdir $indx < testfiles/blank
+
+# 5. Uppercase/lowercase mixing
+./querier $pdir $indx < testfiles/fuzz-case
+europe or travel and island
+Matches 23 documents (ranked): 
+score   6 doc 575: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/neither-here-nor-there-travels-in-europe_198/index.html
+score   5 doc 579: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-summer-in-europe_458/index.html
+score   4 doc 576: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html
+score   2 doc 103: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/setting-the-world-on-fire-the-brief-astonishing-life-of-st-catherine-of-siena_603/index.html
+score   2 doc 157: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-distant-mirror-the-calamitous-14th-century_652/index.html
+score   2 doc 161: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-age-of-genius-the-seventeenth-century-and-the-birth-of-the-modern-mind_929/index.html
+score   2 doc 299: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/masks-and-shadows_909/index.html
+score   2 doc 504: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/candide_316/index.html
+score   2 doc 552: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/forever-and-forever-the-courtship-of-henry-longfellow-and-fanny-appleton_894/index.html
+score   1 doc 281: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/fantasy_19/index.html
+score   1 doc 287: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/city-of-glass-the-mortal-instruments-3_678/index.html
+score   1 doc 553: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/mystery_3/index.html
+score   1 doc   7: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/in-a-dark-dark-wood_963/index.html
+score   1 doc  91: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-travelers_285/index.html
+score   1 doc 104: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/louisa-the-extraordinary-life-of-mrs-adams_818/index.html
+score   1 doc 150: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-mathews-men-seven-brothers-and-the-war-against-hitlers-u-boats_408/index.html
+score   1 doc 172: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/dracula-the-un-dead_370/index.html
+score   1 doc 367: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/orchestra-of-exiles-the-story-of-bronislaw-huberman-the-israel-philharmonic-and-the-one-thousand-jews-he-saved-from-nazi-horrors_337/index.html
+score   1 doc 550: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-house-by-the-lake_846/index.html
+score   1 doc 573: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/travel_2/index.html
+score   1 doc 574: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/1000-places-to-see-before-you-die_1/index.html
+score   1 doc 577: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-year-in-provence-provence-1_421/index.html
+score   1 doc 578: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-great-railway-bazaar_446/index.html
+
+# 6. Test "and" / "or" appearing at the end or consecutively
+## 10 lines of input, should all print error messages
+./querier $pdir $indx < testfiles/wrongandor
+Error: 'and' cannot be first
+Error: 'or' cannot be first
+Error: 'and' cannot be first
+Error: 'or' cannot be first
+Error: 'or' cannot be last
+Error: 'and' cannot be last
+'or' and 'or' cannot be adjacent 
+'and' and 'or' cannot be adjacent 
+'or' and 'and' cannot be adjacent 
+'and' and 'and' cannot be adjacent 
+and
+or
+and europe or travel
+or nationally predicts and iceland
+patience and nightstruck or
+arnold or clerks and
+arnold or or clerks
+holery and or endowment
+orientation or iceland or and sketchbook
+hangs and and visited
+
+# Section 3: Test with valgrind. Contains some invalid input.
+myvalgrind="valgrind --leak-check=full --show-leak-kinds=all"
+$myvalgrind ./querier $pdir $indx < testfiles/valgrindtest
+==390456== Memcheck, a memory error detector
+==390456== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==390456== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==390456== Command: ./querier ../data/toscrape-2 ../data/toscrape2.index
+==390456== 
+Error: 'or' cannot be first
+'and' and 'and' cannot be adjacent 
+disbelief and entire and figured
+No documents match. 
+or and
+slogs and and gable
+lawyers or marriages
+Matches 5 documents (ranked): 
+score   2 doc 465: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-girls-guide-to-moving-on-new-beginnings-2_359/index.html
+score   1 doc 294: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-glittering-court-the-glittering-court-1_845/index.html
+score   1 doc  46: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-long-shadow-of-small-ghosts-murder-and-memory-in-an-american-city_848/index.html
+score   1 doc 157: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-distant-mirror-the-calamitous-14th-century_652/index.html
+score   1 doc 305: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-midnight-watch-a-novel-of-the-titanic-and-the-californian_640/index.html
+==390456== 
+==390456== HEAP SUMMARY:
+==390456==     in use at exit: 0 bytes in 0 blocks
+==390456==   total heap usage: 279,926 allocs, 279,926 frees, 1,147,173,195 bytes allocated
+==390456== 
+==390456== All heap blocks were freed -- no leaks are possible
+==390456== 
+==390456== For lists of detected and suppressed errors, rerun with: -s
+==390456== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+$myvalgrind ./fuzzquerry $indx 10 139 | ./querier $pdir $indx > ../data/valgrind10_139
+valgrind: ./fuzzquerry: No such file or directory
+
+# Section 4: Test with fuzzquerry and valgrind. Might contain large ouput, which will be directed to data
+./fuzzquery $indx 20 277 | ./querier $pdir $indx > ../data/test20_277
+./fuzzquery: generating 20 queries from 13563 words
+./fuzzquery $indx 1000 13904 | ./querier $pdir $indx > ../data/test1000_13904
+./fuzzquery: generating 1000 queries from 13563 words
+$myvalgrind ./fuzzquery $indx 2000 240874 | ./querier $pdir $indx > ../data/valgrind2000_240874
+==390576== Memcheck, a memory error detector
+==390576== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==390576== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==390576== Command: ./fuzzquery ../data/toscrape2.index 2000 240874
+==390576== 
+./fuzzquery: generating 2000 queries from 13563 words
+==390576== 
+==390576== HEAP SUMMARY:
+==390576==     in use at exit: 0 bytes in 0 blocks
+==390576==   total heap usage: 447,464 allocs, 447,464 frees, 372,627,510 bytes allocated
+==390576== 
+==390576== All heap blocks were freed -- no leaks are possible
+==390576== 
+==390576== For lists of detected and suppressed errors, rerun with: -s
+==390576== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+'and' and 'and' cannot be adjacent 
+./fuzzquery ../data/wiki2.index 5000 7025 | ./querier ../data/wiki-2 ../data/wiki2.index > ../data/test5000_7025
+./fuzzquery: generating 5000 queries from 101588 words
