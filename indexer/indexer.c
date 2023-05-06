@@ -57,15 +57,19 @@ static void parseArgs(const int argc, char* argv[], char** pageDirectory, char**
     fprintf(stderr, "Incorrect number of arguments. Usage: ./indexer pageDirectory indexFilename.\n");
     exit(99);
   }
-  
+  FILE* fp;
   *pageDirectory = argv[1];
   *indexFilename = argv[2];
+  if ((fp = fopen(*pageDirectory, "r")) == NULL) {
+    fprintf(stderr, "This directory does not exist.\n");
+    exit(1);
+  } 
+  fclose(fp);
   if (!pagedir_check(*pageDirectory)) {
     fprintf(stderr, "This directory is not produced by crawler.\n");
     exit(1);
   }
 
-  FILE* fp;
   if ((fp = fopen(*indexFilename, "w")) == NULL) {
     fprintf(stderr, "Cannot write output to %s.\n", *indexFilename);
     exit(2);

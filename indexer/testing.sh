@@ -17,7 +17,7 @@
 ./indexer ../data/letters-19 ../data/letters19.index
 
 # 5. Invalid pageDirectory (not a crawler directory)
-./indexer ../data/common ../data/common.index
+./indexer ../data ../data.index
 
 # 6. Invalid indexFile (non-existent path)
 ./indexer ../data/letters-0 ../abcxyz/letters0.index

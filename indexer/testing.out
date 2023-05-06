@@ -27,11 +27,10 @@ Incorrect number of arguments. Usage: ./indexer pageDirectory indexFilename.
 
 # 4. Invalid pageDirectory (non-existent path)
 ./indexer ../data/letters-19 ../data/letters19.index
-Error: not a valid directory with .crawler file.
-This directory is not produced by crawler.
+This directory does not exist.
 
 # 5. Invalid pageDirectory (not a crawler directory)
-./indexer ../data/common ../data/common.index
+./indexer ../data ../data.index
 Error: not a valid directory with .crawler file.
 This directory is not produced by crawler.
 
@@ -70,34 +69,34 @@ Cannot write output to /thayerfs/home/f006fzc/cs50-dev/shared/tse/indices/toscra
 # Using valgrind for memory leak, on toscrape-1
 myvalgrind='valgrind --leak-check=full --show-leak-kinds=all'
 $myvalgrind ./indexer ../data/toscrape-1 ../data/toscrape1.index
-==3731947== Memcheck, a memory error detector
-==3731947== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==3731947== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==3731947== Command: ./indexer ../data/toscrape-1 ../data/toscrape1.index
-==3731947== 
-==3731947== 
-==3731947== HEAP SUMMARY:
-==3731947==     in use at exit: 0 bytes in 0 blocks
-==3731947==   total heap usage: 2,336,017 allocs, 2,336,017 frees, 42,744,162,569 bytes allocated
-==3731947== 
-==3731947== All heap blocks were freed -- no leaks are possible
-==3731947== 
-==3731947== For lists of detected and suppressed errors, rerun with: -s
-==3731947== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==357248== Memcheck, a memory error detector
+==357248== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==357248== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==357248== Command: ./indexer ../data/toscrape-1 ../data/toscrape1.index
+==357248== 
+==357248== 
+==357248== HEAP SUMMARY:
+==357248==     in use at exit: 0 bytes in 0 blocks
+==357248==   total heap usage: 2,336,018 allocs, 2,336,018 frees, 42,744,163,041 bytes allocated
+==357248== 
+==357248== All heap blocks were freed -- no leaks are possible
+==357248== 
+==357248== For lists of detected and suppressed errors, rerun with: -s
+==357248== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 $myvalgrind ./indextest ../data/toscrape1.index ../data/toscrape1.test
-==3732373== Memcheck, a memory error detector
-==3732373== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==3732373== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==3732373== Command: ./indextest ../data/toscrape1.index ../data/toscrape1.test
-==3732373== 
-==3732373== 
-==3732373== HEAP SUMMARY:
-==3732373==     in use at exit: 0 bytes in 0 blocks
-==3732373==   total heap usage: 21,953 allocs, 21,953 frees, 500,105 bytes allocated
-==3732373== 
-==3732373== All heap blocks were freed -- no leaks are possible
-==3732373== 
-==3732373== For lists of detected and suppressed errors, rerun with: -s
-==3732373== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==357513== Memcheck, a memory error detector
+==357513== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==357513== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==357513== Command: ./indextest ../data/toscrape1.index ../data/toscrape1.test
+==357513== 
+==357513== 
+==357513== HEAP SUMMARY:
+==357513==     in use at exit: 0 bytes in 0 blocks
+==357513==   total heap usage: 21,953 allocs, 21,953 frees, 500,105 bytes allocated
+==357513== 
+==357513== All heap blocks were freed -- no leaks are possible
+==357513== 
+==357513== For lists of detected and suppressed errors, rerun with: -s
+==357513== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 # Should print out nothing
 ~/cs50-dev/shared/tse/indexcmp ../data/toscrape1.index ../data/toscrape1.test 
